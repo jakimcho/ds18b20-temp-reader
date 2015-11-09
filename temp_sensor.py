@@ -1,6 +1,9 @@
+#! /usr/bin/env python
+
 import os
 import glob
 import time
+import datetime
 import transmit_msg
 
   
@@ -30,7 +33,7 @@ def read_temp():
     temp_string = lines[1][equals_pos+2:]
     temp_c = float(temp_string) / 1000.0
     temp_f = temp_c * 9.0 / 5.0 + 32.0
-    message = {'temp_c': temp_c, 'temp_f': temp_f, 'time': int(time.time())}
+    message = {'temp_c': temp_c, 'temp_f': temp_f, 'time': datetime.datetime.utcnow()}
     return message
 
 messages = []
@@ -38,7 +41,7 @@ batch = 0
 
 while True:
   messages.append(read_temp().copy())
-  time.sleep(1)
+  time.sleep(60)
   
   if (batch == 10):
     transmit_msg.send(messages)
