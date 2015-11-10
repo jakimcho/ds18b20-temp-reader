@@ -6,6 +6,7 @@ import time
 import datetime
 import transmit_msg
 
+from datetime import datetime
   
 os.system('modprobe w1-gpio')
 os.system('modprobe w1-therm')
@@ -30,22 +31,27 @@ def read_temp():
   equals_pos = lines[1].find('t=')
   
   if equals_pos != -1:
+    timestamp = int(time.time())
     temp_string = lines[1][equals_pos+2:]
     temp_c = float(temp_string) / 1000.0
     temp_f = temp_c * 9.0 / 5.0 + 32.0
-    message = {'temp_c': temp_c, 'temp_f': temp_f, 'time': datetime.datetime.utcnow()}
+    message = {'temp_c': temp_c, 'temp_f': temp_f, 'time': timestamp}
     return message
 
-messages = []
-batch = 0
+#messages = []
+#batch = 0
 
-while True:
-  messages.append(read_temp().copy())
-  time.sleep(60)
+#while True:
+#  messages.append(read_temp().copy())
+#  time.sleep(60)
   
-  if (batch == 10):
-    transmit_msg.send(messages)
-    messages = []
-    batch = 0
+#  if (batch == 10):
+#    transmit_msg.send(messages)
+#    messages = []
+#    batch = 0
   
-  batch += 1
+#  batch += 1
+
+message = read_temp()
+res = transmit_msg.send(message)
+print ("message sent to mongo" + str(res))
