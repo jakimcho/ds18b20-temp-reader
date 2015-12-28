@@ -3,14 +3,12 @@
 import os
 import glob
 import time
+import re
 import datetime
 import transmit_msg
 
 from datetime import datetime
   
-os.system('modprobe w1-gpio')
-os.system('modprobe w1-therm')
-
 base_dir = '/sys/bus/w1/devices/'
 
 devices_folders = glob.glob(base_dir + '28*')
@@ -28,13 +26,22 @@ def read_temp_raw(file):
   lines = f.readlines()
   f.close()
   return lines
+  
+def get_sensor_id(sensor_file_name):
+  try:
+    sensor_id = re.search('devices/(.+?)/w1_slave', sensor_file_name).group(1)
+  except AttributeError:
+    sensor_id = ''
+    
+  return sensor_id
 
 def read_temp():
   index = 0
   timestamp = datetime.now().strftime("%y-%m-%d-%H:%M:%S")
-  message = {timestamp: []}
+  messages = [];
 
   for file in devices_files:
+    sensor_id = get_sensor_id(file)  
     lines = read_temp_raw(file)
     index += 1
     
@@ -49,25 +56,11 @@ def read_temp():
       
       temp_c = float(temp_string) / 1000.0
       temp_f = temp_c * 9.0 / 5.0 + 32.0
-      now = int(time.time())
-      data = {'device': index, 'temp_c': temp_c, 'temp_f': temp_f, 'time': now}
-      message[timestamp].append(data)
-  return message
+      data = {'sensor_id': sensor_id, 'data': [{'temp_c': temp_c, 'temp_f': temp_f, 'time': timestamp}]}
+      messages.append(data)
+  return messages
 
-#messages = []
-#batch = 0
-
-#while True:
-#  messages.append(read_temp().copy())
-#  time.sleep(60)
-  
-#  if (batch == 10):
-#    transmit_msg.send(messages)
-#    messages = []
-#    batch = 0
-  
-#  batch += 1
-
-message = read_temp()
-res = transmit_msg.send(message)
+messages = read_temp()
+print(messages)
+res = transmit_msg.send(messages)
 print ("message sent to mongo" + str(res))

@@ -2,17 +2,45 @@ import pymongo
 import json
 
 from pymongo import MongoClient
+rooms = {'room1': '28-0000072f378f', 'room2': '28-000006c9fdf1'}
+MONGO_URL = 'mongodb://jakim:12345@ds059654.mongolab.com:59654/mongojr'
 
-def send(message):
-#  print("Sending Messages" + json.dumps(message))
+def send(messages):
 
-  client = MongoClient('mongodb://jakim:12345@ds059654.mongolab.com:59654/mongojr')
-
+  client = MongoClient(MONGO_URL)
   db = client['mongojr']
-  temperature = db.temperature
-  record_id = temperature.insert(message)
+  rooms_collection = db.rooms_data
+  
+  for m in messages:
+    sensor_id = m.get('sensor_id')
+    room_name = get_room_by_sensor(sensor_id)
+    data      = m.get('data')[0]
+    
+    if not room_exists(room_name, rooms_collection):
+      record_room_id = add_new_room(room_name, sensor_id, rooms_collection)
+      print(record_room_id)
+    
+    record_id = append_temperature_to_room(room_name, data, rooms_collection)
+    
   client.close()
-#  print("DB record id" + record_id)
   return record_id
 
+def get_room_by_sensor(sensor_id):
+  print (sensor_id)
+  print (rooms)
+  for room, sensor in rooms.items():
+    if sensor == sensor_id:
+      return room
+    
+  return ''  
 
+def room_exists(room, collection):
+  coursor = collection.find({'name': room})
+  return coursor.count() > 0
+
+def append_temperature_to_room(room, data, collection):
+  collection.update({'name': room}, {'$addToSet': {'statistics.temperature.data': data}})
+    
+def add_new_room(room_name, sensor_id, collection):
+  room_schema = {'name': room_name, 'statistics': {'temperature': {'sensor_id': sensor_id, 'data':[]}}}  
+  collection.insert(room_schema)
