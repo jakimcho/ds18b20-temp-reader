@@ -2,7 +2,7 @@ import pymongo
 import json
 
 from pymongo import MongoClient
-rooms = {'room1': '28-0000072f378f', 'room2': '28-000006c9fdf1'}
+rooms = {'room1': '28-0000072f378f', 'room2': '28-000006c9fdf1', "room3": "28-0000"}
 MONGO_URL = 'mongodb://jakim:12345@ds059654.mongolab.com:59654/mongojr'
 
 def send(messages):
