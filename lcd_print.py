@@ -3,6 +3,7 @@
 import lcd_display
 import ds18b20
 import transmit_msg
+import check_net
 from time import sleep
 
 lcd = lcd_display.Adafruit_CharLCD()
@@ -12,6 +13,11 @@ counter = 0
 
 try:
   while 1:
+    ppp = check_net.GetPacketCount("ppp")
+    if ppp:
+      lcd.clear()
+      lcd.message("Network " + ppp)
+
     messages = ds18b20.read_temp()
     
     for m in messages:
