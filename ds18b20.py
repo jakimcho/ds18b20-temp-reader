@@ -2,7 +2,6 @@ import os
 import glob
 import time
 import re
-import datetime
 
 from datetime import datetime
   
